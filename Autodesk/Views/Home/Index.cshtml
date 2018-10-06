@@ -1,0 +1,111 @@
+﻿<html>
+<head>
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+    <meta charset="utf-8">
+
+    <title>Autodesk Forge Viewer Simple Offline</title>
+
+    <!-- The Viewer CSS -->
+    <link rel="stylesheet" href="~/Scripts/adsk-lmv/style.css" type="text/css">
+
+    <!-- Developer CSS -->
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #MyViewerDiv {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background-color: #F0F8FF;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- The Viewer will be instantiated here -->
+    <div id="MyViewerDiv"></div>
+
+    <!-- The Viewer JS -->
+    <script src="~/Scripts/adsk-lmv/viewer3D.js"></script>
+
+    <!-- Developer JS -->
+    <script>
+        var options = {
+            env: 'Local'
+        };
+
+        var doc = { 'rootFolder': 'House', 'path': 'Resource/3D_View/_3D_ 960621/_3D_.svf', 'name': '3D view' };
+
+        var viewerDiv = document.getElementById('MyViewerDiv');
+        var viewer = new Autodesk.Viewing.Private.GuiViewer3D(viewerDiv);
+
+
+        Autodesk.Viewing.Initializer(options, function() {
+            if( viewer.start() != 0 ) return console.error( 'Failed to initialize viewer' );
+
+            var basePath = getCurrentBaseURL();
+            var modelFolderPath = basePath + doc.rootFolder + '/';
+            var modelFilePath = modelFolderPath + doc.path;
+            var modelOptions = {
+                sharedPropertyDbPath: modelFolderPath
+            };
+
+            viewer.addEventListener(
+				Autodesk.Viewing.PROGRESS_UPDATE_EVENT,
+				function( event ) {
+				    if(event.state == Autodesk.Viewing.ProgressState.LOADING)
+				        console.log( '%cPROGRESS_UPDATE_EVENT:', 'color: blue;', event );
+				});
+
+            viewer.addEventListener(
+				Autodesk.Viewing.OBJECT_TREE_CREATED_EVENT,
+				function() {
+				    console.log( '%cOBJECT_TREE_CREATED_EVENT: !!!Object tree loaded!!!', 'color: blue;' );
+				});
+
+            viewer.addEventListener(
+				Autodesk.Viewing.GEOMETRY_LOADED_EVENT,
+				function (event) {
+				    console.log('%cGEOMETRY_LOADED_EVENT: !!!Geometries loaded!!!', 'color: green;');
+				});
+
+            viewer.loadModel(modelFilePath, modelOptions, onLoadModelSuccess, onLoadModelError);
+        });
+
+
+        function getCurrentBaseURL() {
+            //var basePath = '';
+            //var lastSlash = document.location.href.lastIndexOf('/');
+
+            //if (lastSlash != -1)
+            //    basePath = document.location.href.substr(0, lastSlash+1);
+
+            var basePath = document.location.protocol + '//' + document.location.host + '/bubbles/';
+
+            return basePath;
+        }
+
+        /**
+         * viewer.loadModel() success callback.
+         * Invoked after the model's SVF has been initially loaded.
+         * It may trigger before any geometry has been downloaded and displayed on-screen.
+         */
+        function onLoadModelSuccess(model) {
+            console.log('onLoadModelSuccess()!');
+            console.log('Validate model loaded: ' + (viewer.model === model));
+            console.log(model);
+        }
+
+        /**
+         * viewer.loadModel() failure callback.
+         * Invoked when there's an error fetching the SVF file.
+         */
+        function onLoadModelError(viewerErrorCode) {
+            console.error('onLoadModelError() - errorCode:' + viewerErrorCode);
+        }
+
+    </script>
+</body>
+</html>
